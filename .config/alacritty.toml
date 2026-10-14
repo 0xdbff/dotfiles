@@ -1,0 +1,109 @@
+[colors]
+draw_bold_text_with_bright_colors = true
+
+[[keyboard.bindings]]
+action = "ScrollLineUp"
+key = "Y"
+mode = "Vi|~Search"
+mods = "Control"
+
+[[keyboard.bindings]]
+action = "Paste"
+key = "V"
+mods = "Alt"
+
+[[keyboard.bindings]]
+action = "Copy"
+key = "C"
+mods = "Alt"
+
+[colors.bright]
+# Cursor Dark Midnight's terminal.ansiBright* palette.
+black = "#4c566a"
+blue = "#81a1c1"
+cyan = "#8fbcbb"
+green = "#a3be8c"
+magenta = "#b48ead"
+red = "#bf616a"
+white = "#eceff4"
+yellow = "#ebcb8b"
+
+[colors.normal]
+# Cursor Dark Midnight, from Cursor's bundled theme-cursor extension.
+# Web mirror: github.com/BioHazard786/cursor-theme-vscode
+black = "#272c36"
+blue = "#81a1c1"
+cyan = "#88c0d0"
+green = "#a3be8c"
+magenta = "#7d7c9b"
+red = "#bf616a"
+white = "#e5e9f0"
+yellow = "#ebcb8b"
+
+[colors.dim]
+# Missing from Cursor: derived by mixing normal colors 34% toward the background.
+black = "#22272f"
+blue = "#5e748b"
+cyan = "#628895"
+green = "#748768"
+magenta = "#5b5b72"
+red = "#874a52"
+white = "#a0a3aa"
+yellow = "#a49067"
+
+[colors.primary]
+background = "#191c22"
+foreground = "#d8dee9"
+dim_foreground = "#979ca5"
+
+[colors.cursor]
+text = "CellBackground"
+cursor = "#8fbcbb"
+
+[colors.selection]
+text = "CellForeground"
+# Cursor's #434c5e55 composited over its terminal background (Alacritty has no alpha here).
+background = "#272c36"
+
+[cursor.style]
+shape = "Beam"
+
+[font]
+size = 12.5
+
+[font.bold]
+style = "Medium"
+
+[font.bold_italic]
+style = "Medium Italic"
+
+[font.glyph_offset]
+x = 0
+y = 0
+
+[font.italic]
+style = "Italic"
+
+[font.normal]
+family = "MesloLGS Nerd Font Propo"
+# family = "Iosevka Nerd Font Mono"
+style = "Regular"
+
+[font.offset]
+x = 0
+y = 2
+
+[scrolling]
+history = 0
+
+[window]
+decorations = "none"
+dynamic_title = true
+startup_mode = "Maximized"
+title = "term Alacritty"
+
+[window.padding]
+x = 0
+y = 0
+
+[keyboard]

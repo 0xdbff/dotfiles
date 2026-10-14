@@ -1,0 +1,3 @@
+# Dependency revisions are intentionally tracked in lazy-lock.json.
+*.swp
+.DS_Store

@@ -1,0 +1,11 @@
+.DS_Store
+*.swp
+*.swo
+*~
+.env
+.env.*
+*.pem
+*.key
+# Keep local snapshots and runtime artifacts out of the public repository.
+/backups/
+/backup/
