@@ -1,0 +1,54 @@
+# Two lines, quiet Git, and ASCII defaults (no patched font required).
+add_newline = false
+format = "$directory$git_branch$git_status$cmd_duration$fill$time\n$status$character"
+command_timeout = 500
+
+[directory]
+style = "bold cyan"
+truncation_length = 4
+truncate_to_repo = false
+read_only = " ro"
+format = "[$path]($style)[$read_only]($read_only_style) "
+
+[git_branch]
+symbol = "git:"
+style = "purple"
+format = "[$symbol$branch]($style) "
+
+[git_status]
+style = "yellow"
+format = '([$all_status$ahead_behind]($style) )'
+untracked = ""
+stashed = ""
+modified = "!"
+staged = "+"
+deleted = "x"
+renamed = ">"
+typechanged = "~"
+conflicted = "="
+ahead = ">"
+behind = "<"
+diverged = "<>"
+ignore_submodules = true
+
+[cmd_duration]
+min_time = 1000
+format = "[took $duration](dimmed yellow) "
+
+[fill]
+symbol = " "
+
+[time]
+disabled = false
+time_format = "%R"
+format = "[$time](dimmed white)"
+
+[status]
+disabled = false
+symbol = "exit:"
+format = "[$symbol$status](bold red) "
+
+[character]
+success_symbol = "[>](bold green)"
+error_symbol = "[>](bold red)"
+vimcmd_symbol = "[<](bold green)"

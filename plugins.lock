@@ -1,0 +1,9 @@
+# Reviewed upstream sources; full commits are fetched, never moving branches.
+ZSH_COMPLETIONS_URL=https://github.com/zsh-users/zsh-completions.git
+ZSH_COMPLETIONS_COMMIT=6661b4b68173784ba31ef10ce4b5cb1c9ecfdcac
+FZF_TAB_URL=https://github.com/Aloxaf/fzf-tab.git
+FZF_TAB_COMMIT=24105b15714bfec37989ed5c5b6e60f572253019
+# Official static musl release; checksums from release .sha256 assets.
+STARSHIP_VERSION=1.26.0
+STARSHIP_SHA256_X86_64=b7c232b0e8249d8e55a40beb79c5c43a7d370f3f9408bd215deb0170daeaadf3
+STARSHIP_SHA256_AARCH64=dc30189378d2f2e287384e8a692d3f95ad1df64cf0e8c36aa9201516028aed6b

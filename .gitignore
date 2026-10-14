@@ -9,3 +9,4 @@
 # Keep local snapshots and runtime artifacts out of the public repository.
 /backups/
 /backup/
+/tests/__pycache__/

@@ -1,0 +1,51 @@
+name: Zsh setup
+on:
+  push:
+    paths: ['setup.sh', 'install.sh', 'scripts/**', 'config/**', '.config/**', 'plugins.lock', 'apps.lock', 'tests/**', '.github/workflows/zsh.yml']
+  pull_request:
+    paths: ['setup.sh', 'install.sh', 'scripts/**', 'config/**', '.config/**', 'plugins.lock', 'apps.lock', 'tests/**', '.github/workflows/zsh.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  macos:
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - run: brew install shellcheck tmux
+      - run: ./setup.sh --platform macos --dry-run
+      - run: ./setup.sh --platform macos
+      - run: ./setup.sh --platform macos
+      - run: ./install.sh --links-only
+      - run: ./install.sh --links-only
+      - run: ./tests/run.sh
+      - run: ./setup.sh --check
+      - run: python3 tests/interactive.py
+      - run: zsh -f scripts/benchmark.zsh
+  fedora:
+    runs-on: ubuntu-latest
+    container: fedora:latest
+    timeout-minutes: 20
+    steps:
+      - name: Bootstrap test account (installer itself must not run as root)
+        run: |
+          dnf install -y git sudo python3 ShellCheck tmux shadow-utils
+          useradd -m shelltest
+          echo 'shelltest ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/shelltest
+          chmod 440 /etc/sudoers.d/shelltest
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Install, repeat, validate as ordinary user
+        run: |
+          sudo -H -u shelltest bash -c '
+            set -e
+            ./setup.sh --platform fedora --dry-run
+            ./setup.sh --platform fedora
+            ./setup.sh --platform fedora
+            ./install.sh --links-only
+            ./install.sh --links-only
+            ./tests/run.sh
+            ./setup.sh --check
+            python3 tests/interactive.py
+            zsh -f scripts/benchmark.zsh
+          '

@@ -1,0 +1,12 @@
+# shellcheck shell=bash disable=SC2034
+# Verified 2026-10-14. Shell assignments only; package-manager packages track
+# their supported repositories, while standalone downloads/builds are pinned.
+# V2 provenance: https://opencode.ai/v2/docs/ and
+# https://raw.githubusercontent.com/anomalyco/homebrew-tap/master/opencode-v2.rb
+OPENCODE_VERSION=2.0.29
+OPENCODE_LINUX_ARM64_SHA256=39d0aa787531b0be9e67d087e8ff665cda1f8e748124fe790fe35f1fdd005c38
+OPENCODE_LINUX_X64_SHA256=639ed8b3d19085c7a62c6ba418dafd3c8edbc9e1116d1efc6d8846554b271d96
+# Official signed v0.17.0 tag resolves to this commit:
+# https://api.github.com/repos/alacritty/alacritty/git/tags/dc946285396bd3e251b6942af7e9961b74f76bee
+ALACRITTY_VERSION=0.17.0
+ALACRITTY_COMMIT=94e7c8874e526b1e67b349d9ba30ddf81669119e

@@ -1,0 +1,5 @@
+{
+  "$schema": "https://opencode.ai/v2/cli.json",
+  "theme": {"name": "cursor-midnight", "mode": "dark"},
+  "diffs": {"wrap": "word"}
+}
