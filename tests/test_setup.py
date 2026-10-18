@@ -246,6 +246,35 @@ printf '#compdef docker\\n_docker() { _arguments "--flag[documented flag]"; }\\n
 
 
 class InstallerSafety(Sandbox):
+    def test_fedora_installs_cmp_provider(self):
+        r = self.run_cmd(["bash", "-euc", '''
+          DOTFILES_ROOT=$1; DRY_RUN=1
+          . "$1/scripts/common.sh"; initialize_paths
+          . "$1/plugins.lock"; . "$1/scripts/install-fedora.sh"
+          install_platform
+        ''', "--", str(ROOT)])
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("diffutils", r.stdout)
+        self.assertEqual(list(self.home.iterdir()), [])
+
+    def test_missing_cmp_fails_before_configuration_changes(self):
+        rc = self.home / ".zshrc"
+        rc.write_text("export KEEP_SETTING=yes\n")
+        original = rc.read_bytes()
+        minimal = self.home / "minimal-bin"
+        minimal.mkdir()
+        (minimal / "awk").symlink_to(shutil.which("awk"))
+        self.env["PATH"] = str(minimal)
+        r = self.run_cmd(["/bin/bash", "-euc", '''
+          DOTFILES_ROOT=$1
+          . "$1/scripts/common.sh"; . "$1/scripts/configure.sh"
+          configure_dotfiles
+        ''', "--", str(ROOT)])
+        self.assertNotEqual(r.returncode, 0)
+        self.assertIn("cmp is required", r.stderr)
+        self.assertEqual(rc.read_bytes(), original)
+        self.assertFalse((self.home / "config").exists())
+
     def configure(self):
         return self.run_cmd(["bash", "-euc", '''
           DOTFILES_ROOT=$1

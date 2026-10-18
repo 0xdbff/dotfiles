@@ -1,7 +1,6 @@
 #!/bin/bash
 set -eu
 root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
-export PATH="$HOME/.local/bin:$PATH"
 if [ -n "${HOMEBREW_PREFIX:-}" ]; then
     export PATH="$HOMEBREW_PREFIX/bin:$HOMEBREW_PREFIX/sbin:$PATH"
 else
@@ -12,6 +11,7 @@ else
         fi
     done
 fi
+export PATH="$HOME/.local/bin:$PATH"
 failed=0
 printf '%s\n' 'Dependency health (no installation or default-shell changes):'
 for tool in zsh git fzf zoxide bat eza fd rg starship; do

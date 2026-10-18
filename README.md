@@ -1,6 +1,6 @@
 # Dotfiles
 
-Personal Zsh, Neovim, Alacritty, and OpenCode configuration maintained by [Diogo Antunes (@0xdbff)](https://github.com/0xdbff). Cursor Midnight ties the editor, terminal, and OpenCode together.
+Personal Zsh, Neovim, Alacritty, btop, and OpenCode configuration maintained by [Diogo Antunes (@0xdbff)](https://github.com/0xdbff). Cursor Midnight ties the editor, terminal, and OpenCode together; btop inherits the terminal palette.
 
 ## Install everything
 
@@ -23,6 +23,7 @@ settings, accounts, agents, plugins and MCP servers are not copied or replaced.
 ```sh
 ./install.sh --platform macos --dry-run     # no downloads or file changes
 ./install.sh --links-only                  # link all configs; skip packages
+./install.sh --check                       # shell + app versions/config links
 ./install.sh --platform macos --set-default-shell  # explicit shell-change opt-in
 ./install.sh --help
 ```
@@ -44,6 +45,7 @@ Paths below are relative to `${XDG_CONFIG_HOME:-$HOME/.config}`:
 | --- | --- |
 | `nvim` | `.config/nvim` |
 | `alacritty/alacritty.toml` | `.config/alacritty.toml` |
+| `btop/btop.conf` | `.config/btop/btop.conf` |
 | `opencode/cli.json` | `.config/opencode/cli.json` |
 | `opencode/themes/cursor-midnight.json` | `.config/opencode/themes/cursor-midnight.json` |
 | `dotfiles-zsh` | `config` (Zsh modules and Starship) |
@@ -68,7 +70,16 @@ after moving it to update the links.
   [Meslo Nerd Font](https://www.nerdfonts.com/font-downloads) for the configured
   typography/icons. A missing font is separate from configuration linking.
 - **OpenCode V2:** restart OpenCode to discover the theme; `/themes` selects it.
-  Connect providers locally with `/connect`. Credentials stay outside Git.
+  Connect providers locally with `/connect`. Credentials stay outside Git. A
+  verified V2 executable is linked into `~/.local/bin`; an existing npm/V1 binary
+  is left alone. Homebrew installs V2 with `--skip-link` to avoid global conflicts,
+  and the managed Zsh puts user-local executables first.
+- **btop:** run `btop` as your normal user (`q` quits). The built-in `TTY` theme
+  uses the terminal palette, with a transparent background and braille graphs;
+  it does not force TTY mode. Only `btop.conf` is linked, preserving local themes.
+  UI changes are session-local (`save_config_on_exit = false`); edit the tracked
+  file to persist preferences. Hardware and network selection stay automatic;
+  CPU wattage is disabled rather than requiring elevated privileges.
 
 ## Zsh: Fish-like editing, native completion
 
@@ -107,6 +118,7 @@ the terminal acceptance checklist.
 
 - `.config/nvim/`: TinyVim-based, multi-language Neovim configuration with a standalone Cursor Midnight colorscheme. See its [README](.config/nvim/README.md) for dependencies, setup, and key bindings.
 - `.config/alacritty.toml`: Alacritty configuration using a matching palette and MesloLGS Nerd Font Propo.
+- `.config/btop/btop.conf`: minimal portable resource-monitor preferences using the terminal palette; no custom theme needed. See [upstream configuration](https://github.com/aristocratos/btop#configurability).
 - `.config/opencode/`: minimal OpenCode V2 CLI settings and the shared Cursor Midnight theme.
 - `config/`: modular Zsh configuration and the two-line Starship prompt.
 - `install.sh`: full installation/linking entry point; `setup.sh` is the independent Zsh-only installer.
@@ -153,10 +165,26 @@ Run `./tests/run.sh` for isolated regression tests and static checks. With shell
 dependencies and tmux installed, `python3 tests/interactive.py` exercises real
 terminal editing/completion. See [recorded Zsh evidence](docs/zsh-validation.md)
 and [the complete shell guide](docs/zsh.md).
-Full-installer links/backups and OpenCode settings are validated in disposable
-directories. Live application package installation, Fedora's OpenCode fallback,
-and the macOS Alacritty source build were not executed locally; CI currently
-exercises the Zsh installation and config linking, not the full app installer.
+
+**The complete runner gate is `./scripts/ci.sh macos` or
+`./scripts/ci.sh fedora`** (install `shellcheck` and `tmux` first). It runs the actual full installer twice, compares
+managed-file hashes/link targets/backup counts, runs unit tests and ShellCheck,
+checks shell and app configuration, drives real Zsh/btop/OpenCode terminals,
+restores locked Neovim plugins and tests core startup, then measures shell startup.
+It installs packages and links configs: use a disposable HOME/XDG environment
+when you do not want to replace your live settings. It never changes the login
+shell or submits model prompts. Report logs go under `DOTFILES_CI_REPORT_DIR`
+(default: XDG cache `dotfiles-ci`). Real btop process panes are never saved.
+
+GitHub Actions executes that same gate on macOS and a pinned Fedora 44 container
+as an ordinary user, and uploads diagnostic logs on success or failure. Fedora
+installs `diffutils` for the installer's `cmp` checks. Completion-description
+tests check native metadata rather than provider-specific English wording.
+The base gate does not claim all language SDKs are installed: Neovim's separate
+strict `tests/smoke.lua` still requires every configured LSP and parser after
+`:ToolsInstall` and external SDK setup. A bare, unprovisioned Corepack launcher
+is reported separately from a working pnpm installation; working optional tools
+must have registered completions.
 
 To unlink an app, remove only its destination symlink, then restore its printed
 `.dotfiles-backup.*` file/directory if desired. Remove only the marked Zsh block

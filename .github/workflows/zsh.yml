@@ -1,4 +1,4 @@
-name: Zsh setup
+name: Dotfiles validation
 on:
   push:
     paths: ['setup.sh', 'install.sh', 'scripts/**', 'config/**', '.config/**', 'plugins.lock', 'apps.lock', 'tests/**', '.github/workflows/zsh.yml']
@@ -7,45 +7,59 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: dotfiles-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   macos:
     runs-on: macos-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: '1'
+      HOMEBREW_NO_INSTALL_CLEANUP: '1'
+      DOTFILES_CI_REPORT_DIR: ${{ runner.temp }}/dotfiles-reports
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
       - run: brew install shellcheck tmux
-      - run: ./setup.sh --platform macos --dry-run
-      - run: ./setup.sh --platform macos
-      - run: ./setup.sh --platform macos
-      - run: ./install.sh --links-only
-      - run: ./install.sh --links-only
-      - run: ./tests/run.sh
-      - run: ./setup.sh --check
-      - run: python3 tests/interactive.py
-      - run: zsh -f scripts/benchmark.zsh
+      - name: Full installation, reinstall, static and real application tests
+        run: ./scripts/ci.sh macos
+      - name: Upload validation evidence
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: macos-validation
+          path: ${{ runner.temp }}/dotfiles-reports
+          if-no-files-found: warn
+          retention-days: 7
   fedora:
     runs-on: ubuntu-latest
-    container: fedora:latest
-    timeout-minutes: 20
+    container: fedora:44
+    timeout-minutes: 45
     steps:
       - name: Bootstrap test account (installer itself must not run as root)
         run: |
-          dnf install -y git sudo python3 ShellCheck tmux shadow-utils
+          dnf install -y git sudo python3 ShellCheck tmux shadow-utils diffutils
           useradd -m shelltest
           echo 'shelltest ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/shelltest
           chmod 440 /etc/sudoers.d/shelltest
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Give the unprivileged test account its checkout
+        run: |
+          chown -R shelltest:shelltest "$GITHUB_WORKSPACE"
+          mkdir -p /home/shelltest/reports
+          chown shelltest:shelltest /home/shelltest/reports
       - name: Install, repeat, validate as ordinary user
         run: |
-          sudo -H -u shelltest bash -c '
-            set -e
-            ./setup.sh --platform fedora --dry-run
-            ./setup.sh --platform fedora
-            ./setup.sh --platform fedora
-            ./install.sh --links-only
-            ./install.sh --links-only
-            ./tests/run.sh
-            ./setup.sh --check
-            python3 tests/interactive.py
-            zsh -f scripts/benchmark.zsh
-          '
+          sudo -H -u shelltest env LANG=C.UTF-8 DOTFILES_CI_REPORT_DIR=/home/shelltest/reports bash ./scripts/ci.sh fedora
+      - name: Upload validation evidence
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: fedora-44-validation
+          path: /home/shelltest/reports
+          if-no-files-found: warn
+          retention-days: 7

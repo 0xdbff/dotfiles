@@ -13,6 +13,35 @@ opencode_v2_installed() {
     case "$version" in 2.*) return 0 ;; *) return 1 ;; esac
 }
 
+install_opencode_macos() {
+    local existing=${1:-} prefix binary version
+    if [ "$DRY_RUN" = 1 ]; then
+        plan reuse-working-opencode-v2-otherwise brew install --skip-link anomalyco/tap/opencode-v2
+        plan symlink-with-backup verified-opencode-v2 "$HOME/.local/bin/opencode"
+        return
+    fi
+    if [ -n "$existing" ]; then
+        version=$(opencode_version "$existing") || die 'Existing OpenCode cannot execute'
+        case "$version" in 2.*) binary=$existing ;; *) die 'Expected an existing OpenCode V2' ;; esac
+    else
+        # A V1 npm/formula executable may occupy Homebrew's bin directory.
+        # Do not remove/overwrite it: keep V2's keg unlinked and own only a
+        # backed-up user-local shim. Reuse a previously downloaded V2 keg.
+        if ! "$DOTFILES_BREW_BIN" list --formula anomalyco/tap/opencode-v2 >/dev/null 2>&1; then
+            run "$DOTFILES_BREW_BIN" install --skip-link anomalyco/tap/opencode-v2
+        fi
+        prefix=$("$DOTFILES_BREW_BIN" --prefix anomalyco/tap/opencode-v2) || die 'Cannot locate OpenCode V2 keg'
+        binary=$prefix/bin/opencode
+        version=$(opencode_version "$binary") || die 'Homebrew OpenCode cannot execute'
+        case "$version" in 2.*) ;; *) die 'Homebrew OpenCode V2 is required' ;; esac
+    fi
+    if [ "$binary" != "$HOME/.local/bin/opencode" ]; then
+        link_config_file "$binary" "$HOME/.local/bin/opencode"
+    fi
+    export PATH="$HOME/.local/bin:$PATH"
+    opencode_v2_installed || die 'OpenCode V2 is still shadowed on PATH'
+}
+
 verify_nvim_version() {
     local version major minor
     version=$(nvim --version | head -n 1) || die 'Cannot query Neovim version'
@@ -106,6 +135,10 @@ install_alacritty_macos() {
 }
 
 install_apps() {
+    local existing_opencode=''
+    if [ "$DRY_RUN" = 0 ] && opencode_v2_installed; then
+        existing_opencode=$(command -v opencode)
+    fi
     case "$PLATFORM" in
         macos)
             if [ "$DRY_RUN" = 0 ]; then
@@ -113,25 +146,25 @@ install_apps() {
                 xcode-select -p >/dev/null 2>&1 || die 'Install Xcode Command Line Tools first (xcode-select --install)'
             fi
             if [ "$DRY_RUN" = 1 ]; then
-                plan brew install neovim tree-sitter-cli node python@3.13 go rust curl unzip
+                plan brew install neovim tree-sitter-cli node python@3.13 go btop curl unzip
+                plan install-rust-if-cargo-or-rustc-is-unavailable
                 plan brew install --cask font-meslo-lg-nerd-font
             else
-                install_missing_brew_formulas neovim tree-sitter-cli node python@3.13 go rust curl unzip
+                install_missing_brew_formulas neovim tree-sitter-cli node python@3.13 go btop curl unzip
+                if command -v cargo >/dev/null 2>&1 && command -v rustc >/dev/null 2>&1 &&
+                    cargo --version >/dev/null 2>&1 && rustc --version >/dev/null 2>&1; then
+                    log 'Using the existing working Rust toolchain.'
+                else
+                    install_missing_brew_formulas rust
+                fi
                 if ! "$DOTFILES_BREW_BIN" list --cask font-meslo-lg-nerd-font >/dev/null 2>&1; then
                     run "$DOTFILES_BREW_BIN" install --cask font-meslo-lg-nerd-font
                 fi
             fi
-            if [ "$DRY_RUN" = 1 ]; then
-                plan reuse-opencode-if-version-2-otherwise brew install anomalyco/tap/opencode-v2
-            elif opencode_v2_installed; then log 'Already installed: OpenCode V2'
-            else
-                # Never silently remove another formula to resolve a conflict.
-                run brew install anomalyco/tap/opencode-v2
-                opencode_v2_installed || die 'OpenCode V2 required; check for another opencode earlier on PATH'
-            fi
+            install_opencode_macos "$existing_opencode"
             install_alacritty_macos ;;
         fedora)
-            run sudo dnf install -y neovim alacritty tree-sitter-cli nodejs python3 golang rust cargo gcc make unzip curl tar
+            run sudo dnf install -y neovim alacritty btop tree-sitter-cli nodejs python3 golang rust cargo gcc make unzip curl tar
             install_opencode_linux
             log 'Fedora font: install MesloLGS Nerd Font Propo yourself if missing; no unverified font download is performed.' ;;
         *) die "Unsupported apps platform: $PLATFORM" ;;

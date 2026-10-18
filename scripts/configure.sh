@@ -38,6 +38,7 @@ configure_dotfiles() {
         plan manage-zshrc-block-preserving-symlinks "$ZSHRC" "$CONFIG_LINK/zsh/init.zsh"
         return
     fi
+    command -v cmp >/dev/null 2>&1 || die 'cmp is required (Fedora: install diffutils); no configuration changed'
     [ -f "$DOTFILES_ROOT/config/zsh/init.zsh" ] || die 'Missing config/zsh/init.zsh in checkout'
     [ -f "$DOTFILES_ROOT/config/starship.toml" ] || die 'Missing config/starship.toml in checkout'
     # Seed the new XDG history once; never truncate or modify the old history.

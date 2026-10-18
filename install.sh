@@ -17,7 +17,7 @@ and basic toolchains; links shell, editor, terminal and OpenCode settings.
 --links-only        Link all configurations without packages or shell changes.
 --dry-run           Print the plan; no writes, downloads or package queries.
 --set-default-shell Explicitly change your default shell after successful setup.
---check             Delegate to setup.sh --check (no installation).
+--check             Check shell, apps, versions and managed links (no installation).
 Run as your normal user, not sudo. macOS needs Homebrew and Xcode CLT.
 macOS builds Alacritty 0.17.0 locally (potentially several minutes) because
 the Homebrew Alacritty cask is disabled. App goes in ~/Applications.
@@ -44,7 +44,10 @@ while [ "$#" -gt 0 ]; do
 done
 if [ "$mode" = check ]; then
     [ "$DRY_RUN" = 0 ] && [ "$SET_DEFAULT_SHELL" = 0 ] && [ -z "$requested" ] || die '--check cannot be combined with install options'
-    exec /bin/bash "$DOTFILES_ROOT/setup.sh" --check
+    result=0
+    /bin/bash "$DOTFILES_ROOT/setup.sh" --check || result=1
+    /bin/bash "$DOTFILES_ROOT/scripts/check-apps.sh" || result=1
+    exit "$result"
 fi
 case "$requested" in ''|macos|fedora) ;; *) die "Unsupported platform: $requested" ;; esac
 if [ "$mode" = install ] || [ -n "$requested" ]; then
@@ -54,6 +57,7 @@ fi
 [ "$mode" != links ] || [ "$SET_DEFAULT_SHELL" = 0 ] || die '--set-default-shell requires a normal installation'
 if [ "$DRY_RUN" = 0 ] && [ "$(id -u)" = 0 ]; then die 'Run as your normal user, not root'; fi
 initialize_paths
+export PATH="$HOME/.local/bin:$PATH"
 . "$DOTFILES_ROOT/scripts/configure.sh"
 . "$DOTFILES_ROOT/scripts/link-configs.sh"
 validate_configuration

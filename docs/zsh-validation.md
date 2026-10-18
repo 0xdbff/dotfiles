@@ -1,5 +1,11 @@
 # Local validation evidence
 
+**Historical local evidence, not CI acceptance.** The first hosted run later
+failed because Fedora lacked `cmp`/`diffutils` and the macOS terminal assertion
+whitelisted Git description wording. The October 18 fixes add those regression
+checks and the full `scripts/ci.sh` gate; current results are recorded separately
+in [CI validation](ci-validation.md).
+
 Recorded 2026-10-14 on macOS ARM64, Darwin 25, system Zsh 5.9, Bash 3.2,
 Starship 1.23.0, and ShellCheck 0.11.0.
 

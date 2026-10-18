@@ -4,6 +4,7 @@
 validate_dotfiles_configs() {
     local source
     for source in "$DOTFILES_ROOT/.config/nvim" "$DOTFILES_ROOT/.config/alacritty.toml" \
+        "$DOTFILES_ROOT/.config/btop/btop.conf" \
         "$DOTFILES_ROOT/.config/opencode/cli.json" \
         "$DOTFILES_ROOT/.config/opencode/themes/cursor-midnight.json"; do
         [ -e "$source" ] || die "Missing configuration in checkout: $source"
@@ -31,6 +32,7 @@ link_dotfiles_configs() {
     validate_dotfiles_configs
     link_config_file "$DOTFILES_ROOT/.config/nvim" "$CONFIG_HOME/nvim"
     link_config_file "$DOTFILES_ROOT/.config/alacritty.toml" "$CONFIG_HOME/alacritty/alacritty.toml"
+    link_config_file "$DOTFILES_ROOT/.config/btop/btop.conf" "$CONFIG_HOME/btop/btop.conf"
     link_config_file "$DOTFILES_ROOT/.config/opencode/cli.json" "$CONFIG_HOME/opencode/cli.json"
     link_config_file "$DOTFILES_ROOT/.config/opencode/themes/cursor-midnight.json" "$CONFIG_HOME/opencode/themes/cursor-midnight.json"
     # Do not touch the legacy $CONFIG_HOME/alacritty.toml.

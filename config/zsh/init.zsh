@@ -21,10 +21,10 @@ if [[ -z $DOTFILES_ZSH_BREW_PREFIX && $OSTYPE == darwin* ]]; then
 fi
 # Includes the verified Fedora Starship fallback, without touching .zshenv.
 typeset -U path
-path=("$HOME/.local/bin" $path)
 if [[ -n $DOTFILES_ZSH_BREW_PREFIX ]]; then
   path=("$DOTFILES_ZSH_BREW_PREFIX/bin" "$DOTFILES_ZSH_BREW_PREFIX/sbin" $path)
 fi
+path=("$HOME/.local/bin" $path)
 
 # These files deliberately register all widgets before syntax highlighting.
 source "$DOTFILES_ZSH_ROOT/zsh/history.zsh"

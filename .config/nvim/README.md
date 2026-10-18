@@ -45,8 +45,18 @@ Health may report optional ecosystems (PHP/Java/Julia/LuaRocks) that are intenti
 
 Tools are installed explicitly, not downloaded on every startup. Formatting is explicit, **not on save**; project formatter settings are respected. Completion uses blink.cmp's stable API, Lua fuzzy matching, and native `vim.snippet`—no extra snippet engine or binary download.
 
-After tools are installed, run the non-destructive smoke checks from this directory:
+Two real-runtime smoke gates are available from this directory (the configuration must be installed as Neovim's active config):
+
+```sh
+nvim --headless '+Lazy! restore' '+qa!'
+nvim --headless '+luafile tests/config-smoke.lua' '+qa!'
+```
+
+The core CI gate loads actual plugins and verifies Midnight/ANSI colors, the essential plugin stack, completion capabilities, all 16 native LSP definitions, user commands/keymaps, and unknown-filetype guards. Startup/runtime errors fail with a nonzero exit. It **does not certify installed language executables, SDKs, or parsers**, and does not run `:ToolsInstall`.
+
+After `:ToolsInstall` finishes and external SDKs (including Dart/Flutter) are installed, run the strict acceptance gate:
 `nvim --headless '+luafile tests/smoke.lua' '+qa!'`.
+This additionally requires **every configured LSP executable and all 25 parsers/highlight queries**; unavailable tools or parsers fail, never skip. Use absolute test paths when running outside this directory.
 
 ## Familiar keys
 

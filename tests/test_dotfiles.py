@@ -1,4 +1,4 @@
-"""Portable dotfile links and OpenCode V2 theme regression tests (offline)."""
+"""Portable dotfile links, btop and OpenCode V2 regression tests (offline)."""
 import json
 import os
 from pathlib import Path
@@ -63,6 +63,28 @@ class OpenCodeConfig(unittest.TestCase):
         visit(tree)
 
 
+class BtopConfig(unittest.TestCase):
+    def test_minimal_portable_preferences(self):
+        path = ROOT / ".config/btop/btop.conf"
+        config = {}
+        for line in path.read_text().splitlines():
+            if not line.strip() or line.lstrip().startswith("#"):
+                continue
+            key, value = line.split("=", 1)
+            self.assertNotIn(key.strip(), config, "duplicate preference")
+            config[key.strip()] = json.loads(value.strip())
+        self.assertEqual(config, {
+            "color_theme": "TTY", "theme_background": False, "truecolor": True,
+            "force_tty": False, "rounded_corners": True, "graph_symbol": "braille",
+            "shown_boxes": "cpu mem net proc", "update_ms": 2000,
+            "proc_sorting": "cpu lazy", "proc_tree": False, "proc_per_core": False,
+            "clock_format": "%X", "show_cpu_watts": False,
+            "save_config_on_exit": False,
+        })
+        self.assertLess(len(path.read_text().splitlines()), 30)
+        self.assertEqual(sorted(p.name for p in path.parent.iterdir()), ["btop.conf"])
+
+
 class ConfigLinks(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory(prefix="dotfiles-links-")
@@ -93,12 +115,16 @@ class ConfigLinks(unittest.TestCase):
         (config / "opencode/opencode.json").write_text('{"private_setting":"keep local"}\n')
         (config / "opencode/cli.json").write_text('{"old_ui":"backup"}\n')
         (config / "opencode/themes/unrelated.json").write_text("{}\n")
+        (config / "btop/themes").mkdir(parents=True)
+        (config / "btop/themes/local.theme").write_text("# private local theme\n")
+        (config / "btop/btop.conf").write_text('color_theme = "local"\n')
         (config / "nvim").mkdir()
         (config / "nvim/old").write_text("retain in backup")
         r = self.link()
         self.assertEqual(r.returncode, 0, r.stderr)
         for dest, source in (("nvim", ".config/nvim"),
                              ("alacritty/alacritty.toml", ".config/alacritty.toml"),
+                             ("btop/btop.conf", ".config/btop/btop.conf"),
                              ("opencode/cli.json", ".config/opencode/cli.json"),
                              ("opencode/themes/cursor-midnight.json", ".config/opencode/themes/cursor-midnight.json"),
                              ("dotfiles-zsh", "config")):
@@ -107,6 +133,11 @@ class ConfigLinks(unittest.TestCase):
             self.assertEqual(target.resolve(), (self.clone / source).resolve())
         self.assertEqual((config / "opencode/opencode.json").read_text(), '{"private_setting":"keep local"}\n')
         self.assertTrue((config / "opencode/themes/unrelated.json").is_file())
+        self.assertFalse((config / "btop").is_symlink())
+        self.assertEqual((config / "btop/themes/local.theme").read_text(), "# private local theme\n")
+        btop_backups = list((config / "btop").glob("btop.conf.dotfiles-backup.*"))
+        self.assertEqual(len(btop_backups), 1)
+        self.assertEqual(btop_backups[0].read_text(), 'color_theme = "local"\n')
         backups = sorted(str(p) for p in config.rglob("*.dotfiles-backup.*"))
         self.assertTrue(any("cli.json" in p for p in backups))
         self.assertTrue(any("nvim" in p for p in backups))
@@ -116,6 +147,20 @@ class ConfigLinks(unittest.TestCase):
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertEqual(first, rc.read_bytes())
         self.assertEqual(backups, sorted(str(p) for p in config.rglob("*.dotfiles-backup.*")))
+        self.assertEqual((config / "btop/themes/local.theme").read_text(), "# private local theme\n")
+        self.assertIn("Already linked: " + str(config / "btop/btop.conf"), r.stdout)
+
+    def test_existing_btop_config_directory_is_backed_up(self):
+        config = Path(self.env["XDG_CONFIG_HOME"])
+        previous = config / "btop/btop.conf"
+        previous.mkdir(parents=True)
+        (previous / "private").write_text("preserve directory contents")
+        r = self.link()
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertTrue(previous.is_symlink())
+        backups = list(previous.parent.glob("btop.conf.dotfiles-backup.*"))
+        self.assertEqual(len(backups), 1)
+        self.assertEqual((backups[0] / "private").read_text(), "preserve directory contents")
 
     def test_links_only_dry_run_does_not_create_home_or_xdg_directories(self):
         r = self.link("--dry-run")

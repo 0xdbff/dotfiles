@@ -43,7 +43,7 @@ install_starship_release() {
 install_platform() {
     if [ "$DRY_RUN" = 1 ]; then
         plan require-dnf
-        plan sudo dnf install -y zsh fzf zoxide bat eza fd-find ripgrep git tealdeer zsh-autosuggestions zsh-syntax-highlighting curl ca-certificates tar gzip coreutils
+        plan sudo dnf install -y zsh fzf zoxide bat eza fd-find ripgrep git tealdeer zsh-autosuggestions zsh-syntax-highlighting curl ca-certificates tar gzip coreutils diffutils
         plan dnf-probe-starship-zsh-completions-fzf-tab '(no queries during dry-run)'
         plan starship-dnf-or-checksum-pinned-release "$STARSHIP_VERSION" "$HOME/.local/bin/starship"
         install_pinned_plugin zsh-completions "$ZSH_COMPLETIONS_URL" "$ZSH_COMPLETIONS_COMMIT"
@@ -53,7 +53,7 @@ install_platform() {
     command -v dnf >/dev/null 2>&1 || die 'Fedora DNF is required first'
     command -v sudo >/dev/null 2>&1 || die 'sudo is required for DNF; run the installer as your normal user'
     log 'DNF package installation needs administrator privileges; sudo may request your password.'
-    run sudo dnf install -y zsh fzf zoxide bat eza fd-find ripgrep git tealdeer zsh-autosuggestions zsh-syntax-highlighting curl ca-certificates tar gzip coreutils
+    run sudo dnf install -y zsh fzf zoxide bat eza fd-find ripgrep git tealdeer zsh-autosuggestions zsh-syntax-highlighting curl ca-certificates tar gzip coreutils diffutils
     if dnf_has_package starship; then
         run sudo dnf install -y starship
     elif command -v starship >/dev/null 2>&1; then
