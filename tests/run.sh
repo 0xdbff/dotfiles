@@ -8,3 +8,8 @@ if command -v shellcheck >/dev/null 2>&1; then
 else
     echo 'SKIP ShellCheck (install shellcheck to run static lint).'
 fi
+if command -v actionlint >/dev/null 2>&1; then
+    actionlint .github/workflows/*.yml
+else
+    echo 'SKIP actionlint (the macOS CI job requires it).'
+fi
