@@ -2,6 +2,7 @@
 # Run at installation/update time, never on interactive shell startup.
 set -eu
 umask 077
+root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd -P)
 
 cache=${XDG_CACHE_HOME:-$HOME/.cache}/dotfiles-zsh
 case "$cache" in /*) ;; *) echo 'XDG_CACHE_HOME must be absolute.' >&2; exit 1 ;; esac
@@ -43,6 +44,21 @@ generate() {
 generate docker completion zsh
 generate kubectl completion zsh
 generate pnpm completion zsh
+
+if command -v node >/dev/null 2>&1 && command -v npm >/dev/null 2>&1; then
+    printf 'Completion: npm (installed configuration metadata + native arguments)\n'
+    if node "$root/scripts/npm-completion.js" "$(command -v npm)" >"$work/_npm" 2>"$work/errors" &&
+        zsh -fn "$work/_npm"; then
+        if ! cmp -s "$work/_npm" "$cache/completions/_npm"; then
+            mv "$work/_npm" "$cache/completions/_npm"
+            changed=1
+        fi
+    else
+        echo 'WARN: cannot generate npm globals; retaining previous/native definition.' >&2
+        cat "$work/errors" >&2
+        failed=1
+    fi
+fi
 
 # Cargo ships a real Zsh definition, not a `cargo completion` subcommand.
 # rustup's active toolchain can change; refresh after switching toolchains.

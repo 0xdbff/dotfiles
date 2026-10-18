@@ -115,6 +115,14 @@ class Configuration(Sandbox):
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertIn("METADATA_OK", r.stdout)
 
+    def test_exact_prefix_precedes_casefold_and_fuzzy_fallback(self):
+        r = self.zsh('''
+          zstyle -a ':completion:*' matcher-list matchers || exit 1
+          [[ $#matchers == 4 && -z $matchers[1] ]] || exit 2
+          [[ $matchers[2] == 'm:{a-zA-Z}={A-Za-z}' ]] || exit 3
+        ''')
+        self.assertEqual(r.returncode, 0, r.stderr)
+
     def test_optional_tools_missing_keeps_native_shell_usable(self):
         minimal = self.home / "minimal-bin"
         minimal.mkdir()

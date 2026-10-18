@@ -98,7 +98,8 @@ Without fzf-tab, native Zsh completion still works.
 
 | Tool | Actual completion source |
 | --- | --- |
-| git, ssh, npm, dnf | Zsh's native definitions (versions vary by platform) |
+| git, ssh, dnf | Zsh's native definitions (versions vary by platform) |
+| npm | Installed npm configuration definitions for global flags/descriptions; native `npm completion` protocol for commands/arguments |
 | brew | Homebrew's `share/zsh/site-functions` |
 | systemctl | Fedora/systemd package's Zsh definitions |
 | cargo | Package/toolchain `_cargo`; copied from the active rustup toolchain on refresh |
@@ -112,6 +113,11 @@ single `compinit`. Generators run at install/refresh time, never on every shell
 startup. Corepack network downloads are disabled during generation. Old or broken
 optional generators warn and preserve any previous valid definition; the health
 check reports missing registrations rather than claiming universal support.
+Newer npm releases no longer return global flags through their completion
+protocol. The setup generates those options from that installed npm's own
+`@npmcli/config` definitions instead of maintaining a stale handwritten flag list.
+It retains npm's native script/argument completion and generates nothing at shell
+startup. A full installation refreshes metadata after installing new developer tools.
 
 After installing/updating developer tools or switching rustup toolchains:
 
@@ -245,6 +251,11 @@ jobs install and repeat the real setup; workflow presence is not a passing run.
 - Measure startup on target hardware; inspect large-repository prompt latency.
 
 ### Known differences from Fish
+
+On Fedora's native Zsh 5.9, an uppercase-only Git branch prefix can still hit an
+upstream case-folding/common-prefix bug. Exact-prefix-first matching avoids it
+for normal branch prefixes; use the branch's actual case when that old native
+provider misbehaves. This is not a universal case-insensitive Git guarantee.
 
 This remains Zsh, with Zsh quoting, word splitting and scripting rules. Flag/help
 quality depends on actual completion metadata; it does not scrape every binary's

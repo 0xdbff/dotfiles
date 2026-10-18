@@ -193,6 +193,15 @@ def main():
                 cancel_menu()
                 print("PASS first-Tab flag completion: " + tool)
 
+            if shutil.which("npm"):
+                (repo / "package.json").write_text('{"scripts":{"fixture-one":"echo never run","fixture-two":"echo never run"}}\n')
+                literal("npm run fixture-")
+                key("Tab")
+                wait_for(lambda: "fixture-one" in editing() and "fixture-two" in editing(),
+                         "npm native script-argument completion")
+                cancel_menu()
+                print("PASS npm native command/argument completion preserved")
+
             literal("git statu")
             wait_for(lambda: screen().split("TEST>")[-1].strip() == "git status", "completion-based ghost suggestion")
             key("Right")

@@ -86,6 +86,9 @@ if [ "$mode" = install ]; then
     . "$DOTFILES_ROOT/apps.lock"
     . "$DOTFILES_ROOT/scripts/install-apps.sh"
     install_apps
+    # Newly installed Node/npm/cargo were not necessarily present during setup.
+    if [ "$DRY_RUN" = 1 ]; then plan "$DOTFILES_ROOT/scripts/refresh-completions.sh"
+    else /bin/bash "$DOTFILES_ROOT/scripts/refresh-completions.sh"; fi
 fi
 if [ "$DRY_RUN" = 0 ]; then
     candidate=$STATE_DIR/install.lock

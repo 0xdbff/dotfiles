@@ -100,8 +100,10 @@ zstyle ':completion:*:messages' format '%d'
 zstyle ':completion:*:warnings' format 'No matches: %d'
 zstyle ':completion:*' verbose yes
 zstyle ':completion:*' completer _complete _approximate
-# Prefix, then word-boundary/substring matching, case insensitive (also flags).
-zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' \
+# Exact prefixes first. Zsh 5.9 can corrupt Git's unambiguous expansion when
+# case folding is enabled on the first pass (e.g. fish- -> fish-B).
+# Then case-insensitive, word-boundary and substring fallback matching.
+zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}' \
   'm:{a-zA-Z}={A-Za-z} r:|[._-]=* r:|=*' \
   'm:{a-zA-Z}={A-Za-z} l:|=* r:|=*'
 zstyle ':completion:*:approximate:*' max-errors '1 numeric'

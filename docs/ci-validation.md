@@ -13,6 +13,20 @@ failed for two reproducible reasons:
   being displayed. It now requires a candidate row and nonempty native description,
   excluding prompt/query echoes and respecting terminal wrapping.
 
+The expanded hosted run also exposed two real provider differences that the
+earlier local tools did not show. Both were reproduced locally:
+
+- In Fedora 44's native Zsh 5.9, bidirectional case folding combined with Git's
+  branch matcher computed `fish-B` as a common prefix even though both real
+  candidates were `fish-alpha` and `fish-beta`. Exact-prefix-first matching fixes
+  normal branch completion. The remaining uppercase-prefix limitation of that
+  old native provider is documented in the shell guide, not claimed fixed.
+- npm 11.13+ stopped returning global options from `npm completion`. The adapter
+  now generates real option names, short aliases and descriptions from the
+  installed npm configuration definitions, while still calling npm's native
+  protocol for commands/scripts/arguments. This was exercised with npm 12.2.0,
+  including script-name completion. No handwritten option catalog replaces npm.
+
 The expanded runner uses `scripts/ci.sh`, on both target platforms, for:
 
 1. Actual full installation, repeat installation, and file/link/backup idempotence.
