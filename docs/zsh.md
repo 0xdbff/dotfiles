@@ -142,10 +142,33 @@ the end of the buffer; normal cursor movement works elsewhere. Alt+F accepts a
 word. Up/Down perform substring history search; Ctrl+R opens fzf history across
 saved sessions. Ctrl+T inserts selected paths, Alt+C changes directory, and
 `z name` / `zi` use zoxide without replacing `cd`. Use `..` / `...` for parents,
-and explicit `ll` / `la` listings; ordinary `ls`, `cat`, `find`, and `grep` are
+and explicit listing aliases; ordinary `ls`, `cat`, `find`, and `grep` are
 not silently replaced. `bcat` uses bat without a pager. Automatic command/spelling
 correction is disabled. fzf uses fd when available, respecting ignore files and
 excluding `.git`, with native traversal as the fallback.
+
+Fish-style directory navigation is enabled with Zsh's `AUTO_CD`: type `dev`
+or `./dev` to enter that directory without `cd`. Quote paths containing spaces.
+An existing command of the same name still takes precedence; use `./name`
+or `cd name` to disambiguate. This applies only to interactive shells.
+
+Listing aliases prefer `eza`, then legacy `exa`, with `ls` fallbacks:
+`l` lists entries, `ll` includes hidden entries, `lt` is a tree, and `llt`
+is a tree including hidden entries. `L` is a detailed size-sorted listing;
+`Ltg` is its tree form, and `Lt` excludes `.git` from that tree. Detailed
+listings use octal permissions and ISO timestamps. Trees can be large: pass
+`--level 2` to bound depth with eza/exa. The `ls` fallbacks use recursive
+listings rather than a tree and cannot reproduce the `.git` exclusion.
+`la` retains a conventional long, hidden-entry listing.
+
+Fresh interactive terminals also show OS, uptime, hostname, local disks and
+active network addresses. `dotfiles_greeting` reruns the greeting. It uses
+`ifconfig` on macOS or `ip` on Linux, without contacting an external service.
+Disk use is yellow at 75–84% and red at 85% or higher. Network colors distinguish
+Ethernet, wireless and WWAN interfaces; non-private addresses are underlined.
+`NO_COLOR` disables color/underlining. Set `DOTFILES_ZSH_GREETING=0` before
+initialization to disable the automatic greeting. Redirected/noninteractive
+shells remain quiet; the greeting is separate from the two-line prompt.
 
 Alt+H or F1 opens the man page for a safely parsed command, preserving the editing
 buffer. Missing pages fall back gracefully to a description or guidance. This is

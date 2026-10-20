@@ -2,6 +2,8 @@
 [[ -o interactive ]] || return 0
 (( ${+_DOTFILES_ZSH_INITIALIZED} )) && return 0
 typeset -g _DOTFILES_ZSH_INITIALIZED=1
+# Fish-style navigation: a directory name alone changes into it.
+setopt auto_cd
 typeset -g DOTFILES_ZSH_ROOT=${${(%):-%N}:A:h:h}
 typeset -g DOTFILES_ZSH_CACHE=${XDG_CACHE_HOME:-$HOME/.cache}/dotfiles-zsh
 typeset -g DOTFILES_ZSH_STATE=${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles-zsh
@@ -33,6 +35,7 @@ source "$DOTFILES_ZSH_ROOT/zsh/widgets.zsh"
 source "$DOTFILES_ZSH_ROOT/zsh/tools.zsh"
 source "$DOTFILES_ZSH_ROOT/zsh/plugins.zsh"
 source "$DOTFILES_ZSH_ROOT/zsh/aliases.zsh"
+source "$DOTFILES_ZSH_ROOT/zsh/greeting.zsh"
 [[ -r ${XDG_CONFIG_HOME:-$HOME/.config}/dotfiles-zsh.local.zsh ]] &&
   source "${XDG_CONFIG_HOME:-$HOME/.config}/dotfiles-zsh.local.zsh"
 

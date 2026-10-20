@@ -68,6 +68,40 @@ class StaticAndCLI(Sandbox):
 
 @unittest.skipUnless(shutil.which("zsh"), "requires Zsh")
 class Configuration(Sandbox):
+    def test_fish_style_directory_navigation(self):
+        base = self.home / "navigation"
+        (base / "dev").mkdir(parents=True)
+        (base / "space dir").mkdir()
+        # AUTO_CD requires SHIN_STDIN: an interactive `zsh -c` is not sufficient.
+        r = self.run_cmd(["zsh", "-dfis", "-o", "no_zle", "--",
+                          str(ROOT / "config/zsh/init.zsh")], input='''
+          source "$1"
+          builtin cd "$HOME/navigation"
+          dev || exit 1
+          [[ $PWD == "$HOME/navigation/dev" ]] || exit 2
+          builtin cd ..
+          ./dev || exit 3
+          [[ $PWD == "$HOME/navigation/dev" ]] || exit 4
+          builtin cd ..
+          "space dir" || exit 5
+          [[ $PWD == "$HOME/navigation/space dir" ]] || exit 6
+        ''')
+        self.assertEqual(r.returncode, 0, r.stderr)
+
+    def test_auto_cd_preserves_commands_and_noninteractive_behavior(self):
+        (self.home / "printf").mkdir()
+        r = self.run_cmd(["zsh", "-dfis", "-o", "no_zle", "--",
+                          str(ROOT / "config/zsh/init.zsh")], input='''
+          source "$1"
+          builtin cd "$HOME"
+          printf 'COMMAND_OK\\n'
+          [[ $PWD == "$HOME" ]] || exit 1
+        ''')
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("COMMAND_OK", r.stdout)
+        r = self.zsh('[[ ! -o auto_cd ]]', interactive=False)
+        self.assertEqual(r.returncode, 0, r.stderr)
+
     def test_noninteractive_is_noop(self):
         r = self.zsh('print -r -- "OK:$options[interactive]"', interactive=False)
         self.assertEqual(r.returncode, 0, r.stderr)
